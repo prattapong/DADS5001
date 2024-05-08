@@ -12,6 +12,7 @@ import plotly.graph_objs as go
 import plotly.express as px
 import base64
 import io
+import time
 
 # URLs for the primary and backup APIs
 PRIMARY_API_URL = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1'
@@ -566,6 +567,7 @@ def update_output(contents):
 )
 def update_dynamic_plot(n_clicks, input_text):
     global df
+    start_time = time.time()
     if n_clicks > 0:
         # Generate output
         output = generate_output(instruction=input_text, prompt=get_chart_prompt())
@@ -604,6 +606,9 @@ def update_dynamic_plot(n_clicks, input_text):
         except Exception as e:
             print('Plot Failed:', str(e))
             fig = generate_chart(chart_type='table', x=x, y=y)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"Elapsed time: {elapsed_time} seconds")
 
         return fig, description
     else:
