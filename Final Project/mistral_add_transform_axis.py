@@ -116,6 +116,15 @@ def extract_dimension_metrics(generated_text:str):
         y = json.loads(y)
     else:
         y = []
+
+    try:
+        x.remove('xxx')
+    except:
+        pass
+    try:
+        y.remove('yyy')
+    except:
+        pass
     
     return x, y
 
