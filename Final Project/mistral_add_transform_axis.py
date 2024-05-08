@@ -152,15 +152,6 @@ def get_chart_axis(df:pd.DataFrame, column:list, x, y):
 
     return x, y
 
-def transform_axis(input:str,y):
-    if ('average' in input) or ('mean' in input):
-        y = sum(y)/len(y)
-    elif ('total' in input) or ('sum' in input):
-        y = sum(y)
-    else:
-        y = sum(y)
-    return y
-
 
 def suggest_chart_type(df:pd.DataFrame, generated_text:str):
     if 'scatter' in generated_text.lower():
@@ -188,6 +179,14 @@ def parse_contents(contents):
 
     return df
 
+def transform_axis(df,input_str, x, y):
+    if 'average' in input_str.lower() or 'mean' in input_str.lower():
+        df2 = df.groupby(x).mean(y).reset_index()
+    elif 'total' in input_str.lower() or 'sum' in input_str.lower():
+        df2 = df.groupby(x).sum(y).reset_index()
+    else:
+        df2 = df.copy()
+    return df2
 
 def pie_chart(df:pd.DataFrame,
               x:list,
@@ -281,9 +280,8 @@ def table_chart(df):
     )
     return fig
 
-def generate_chart(chart_type, x, y):
-    global df
-    # filtered_data = df[df[chart_json['filter']['column']].isin(chart_json['filter']['value'])]
+def generate_chart(df,chart_type, x, y):
+    # filtered_data = df2[df2[chart_json['filter']['column']].isin(chart_json['filter']['value'])]
     filtered_data = df.copy()
     filtered_data = filtered_data.sort_values(by=x)
 
@@ -466,8 +464,8 @@ content = html.Div(
                         id="chart-description",
                         style={'width': '100%', 'height': '100%', 'padding': '0px'}
                     ),
-                    style={'margin-right': '0px', 'border': '0 px solid lightgrey', 'border-radius': '5px'},
-                    width=4
+                    style={'margin-right': '0.1px', 'border': '0 px solid lightgrey', 'border-radius': '5px','font-size': '14px'},
+                    width=3
                 )
             ],
             style={'height': '70vh'}
@@ -572,13 +570,19 @@ def update_dynamic_plot(n_clicks, input_text):
         dimension_metrics_text = generate_output(instruction=', '.join(used_col), prompt=get_axis_prompt())
         print(f'Dimension Metrics Text: {dimension_metrics_text}')
 
-        dimension, metrics = extract_dimension_metrics(generated_text=input_text)
-        print(f'Dimension Metrics: {dimension, metrics}')
-        print(f'{type(metrics)}')
+        dimension, metrics = extract_dimension_metrics(generated_text=dimension_metrics_text)
+        print("Initial dimensions:", dimension)
+        print("Initial metrics:", metrics)
+        
+        if len(dimension) > 1:
+            metrics.append(dimension[0])
+            dimension.pop(0)
+        print(f'Dimension : {dimension}')
+        print(f'Metric : {metrics}')
 
-        new_metric = transform_axis(input_text,metrics)
+        df2 = transform_axis(df,input_text,x=dimension[0],y=metrics[0])
 
-        x, y = get_chart_axis(df, column=used_col, x=dimension, y=new_metric)
+        x, y = get_chart_axis(df2, column=used_col, x=dimension, y=metrics)
         print(f'X = {x} | Type: {type(x)}')
         print(f'Y = {y} | Type: {type(y)}')
         chart_type = suggest_chart_type(df, generated_text=output)
@@ -586,7 +590,7 @@ def update_dynamic_plot(n_clicks, input_text):
 
         # Generate chart
         try:
-            fig = generate_chart(chart_type=chart_type, x=x, y=y)
+            fig = generate_chart(df2,chart_type=chart_type, x=x, y=y)
             print('Plot Success')
         except Exception as e:
             print('Plot Failed:', str(e))
