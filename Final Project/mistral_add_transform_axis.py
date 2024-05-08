@@ -158,7 +158,7 @@ def transform_axis(input:str,y):
     elif ('total' in input) or ('sum' in input):
         y = sum(y)
     else:
-        y = y
+        y = sum(y)
     return y
 
 
