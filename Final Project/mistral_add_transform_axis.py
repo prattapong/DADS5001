@@ -194,7 +194,7 @@ def transform_axis(df,input_str, x, y):
     elif 'total' in input_str.lower() or 'sum' in input_str.lower():
         df2 = df.groupby(x).sum(y).reset_index()
     else:
-        df2 = df.copy()
+        df2 = df.copy().sum(y).reset_index()
     return df2
 
 def pie_chart(df:pd.DataFrame,
