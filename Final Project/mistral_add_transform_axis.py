@@ -571,7 +571,10 @@ def update_dynamic_plot(n_clicks, input_text):
     if n_clicks > 0:
         # Generate output
         output = generate_output(instruction=input_text, prompt=get_chart_prompt())
-        description = output  
+        pre_description = generate_output(instruction=output, prompt="please give description of this chart that contains just 10,000 characters")
+        if  len(pre_description.split("creating the chart.")) > 1:
+            description = pre_description.split("creating the chart.")[1]
+        else : description = pre_description
         print(f'Output: {output}')
         print(df.columns)
 
